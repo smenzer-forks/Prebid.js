@@ -39,14 +39,18 @@ export const id5IdSubmodule = {
    * @returns {(Object|undefined)}
    */
   decode(value) {
+    let decodedObject;
+
     if (value && typeof value.ID5ID === 'string') {
       // don't lose our legacy value from cache
-      return { 'id5id': value.ID5ID };
+      decodedObject = { id5id: { universal_uid: value.ID5ID } };
     } else if (value && typeof value.universal_uid === 'string') {
-      return { 'id5id': value.universal_uid };
+      decodedObject = { id5id: { universal_uid: value.universal_uid } };
     } else {
       return undefined;
     }
+
+    return decodedObject;
   },
 
   /**

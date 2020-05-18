@@ -31,7 +31,9 @@ describe('eids array generation for known sub-modules', function() {
 
   it('id5Id', function() {
     const userId = {
-      id5id: 'some-random-id-value'
+      id5id: {
+        universal_uid: 'some-random-id-value'
+      }
     };
     const newEids = createEidsArray(userId);
     expect(newEids.length).to.equal(1);

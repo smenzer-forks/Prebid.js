@@ -30,6 +30,9 @@ const USER_IDS_CONFIG = {
 
   // id5Id
   'id5id': {
+    getValue: function(data) {
+      return data.universal_uid
+    },
     source: 'id5-sync.com',
     atype: 1
   },

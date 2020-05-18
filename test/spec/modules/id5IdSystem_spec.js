@@ -50,7 +50,9 @@ describe('ID5 ID System', function() {
     return {
       name: ID5_MODULE_NAME,
       value: {
-        id5id: value
+        id5id: {
+          universal_uid: value
+        }
       }
     }
   }
@@ -238,7 +240,7 @@ describe('ID5 ID System', function() {
         adUnits.forEach(unit => {
           unit.bids.forEach(bid => {
             expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}`);
-            expect(bid.userId.id5id).to.equal(ID5_STORED_ID);
+            expect(bid.userId.id5id.universal_uid).to.equal(ID5_STORED_ID);
             expect(bid.userIdAsEids[0]).to.deep.equal({
               source: ID5_SOURCE,
               uids: [{ id: ID5_STORED_ID, atype: 1 }]
@@ -258,7 +260,7 @@ describe('ID5 ID System', function() {
         adUnits.forEach(unit => {
           unit.bids.forEach(bid => {
             expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}`);
-            expect(bid.userId.id5id).to.equal(ID5_STORED_ID);
+            expect(bid.userId.id5id.universal_uid).to.equal(ID5_STORED_ID);
             expect(bid.userIdAsEids[0]).to.deep.equal({
               source: ID5_SOURCE,
               uids: [{ id: ID5_STORED_ID, atype: 1 }]
@@ -368,13 +370,13 @@ describe('ID5 ID System', function() {
   });
 
   describe('Decode stored object', function() {
-    const decodedObject = { 'id5id': ID5_STORED_ID };
+    const expectedDecodedObject = { id5id: { universal_uid: ID5_STORED_ID } };
 
     it('should properly decode from a stored object', function() {
-      expect(id5IdSubmodule.decode(ID5_STORED_OBJ)).to.deep.equal(decodedObject);
+      expect(id5IdSubmodule.decode(ID5_STORED_OBJ)).to.deep.equal(expectedDecodedObject);
     });
     it('should properly decode from a legacy stored object', function() {
-      expect(id5IdSubmodule.decode(ID5_LEGACY_STORED_OBJ)).to.deep.equal(decodedObject);
+      expect(id5IdSubmodule.decode(ID5_LEGACY_STORED_OBJ)).to.deep.equal(expectedDecodedObject);
     });
     it('should return undefined if passed a string', function() {
       expect(id5IdSubmodule.decode('somestring')).to.eq(undefined);

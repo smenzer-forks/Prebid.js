@@ -1136,7 +1136,7 @@ describe('User ID', function() {
             expect(bid.userId.tdid).to.equal('testunifiedid');
             // also check that Id5Id id data was copied to bid
             expect(bid).to.have.deep.nested.property('userId.id5id');
-            expect(bid.userId.id5id).to.equal('testid5id');
+            expect(bid.userId.id5id.universal_uid).to.equal('testid5id');
             // check that identityLink id data was copied to bid
             expect(bid).to.have.deep.nested.property('userId.idl_env');
             expect(bid.userId.idl_env).to.equal('AiGNC8Z5ONyZKSpIPf');
@@ -1215,7 +1215,7 @@ describe('User ID', function() {
             expect(bid.userId.tdid).to.equal('cookie-value-add-module-variations');
             // also check that Id5Id id data was copied to bid
             expect(bid).to.have.deep.nested.property('userId.id5id');
-            expect(bid.userId.id5id).to.equal('testid5id');
+            expect(bid.userId.id5id.universal_uid).to.equal('testid5id');
             // also check that identityLink id data was copied to bid
             expect(bid).to.have.deep.nested.property('userId.idl_env');
             expect(bid.userId.idl_env).to.equal('AiGNC8Z5ONyZKSpIPf');
@@ -1333,7 +1333,7 @@ describe('User ID', function() {
             expect(bid.userId.tdid).to.equal('cookie-value-add-module-variations');
             // also check that Id5Id id data was copied to bid
             expect(bid).to.have.deep.nested.property('userId.id5id');
-            expect(bid.userId.id5id).to.equal('testid5id');
+            expect(bid.userId.id5id.universal_uid).to.equal('testid5id');
             // also check that identityLink id data was copied to bid
             expect(bid).to.have.deep.nested.property('userId.idl_env');
             expect(bid.userId.idl_env).to.equal('AiGNC8Z5ONyZKSpIPf');
