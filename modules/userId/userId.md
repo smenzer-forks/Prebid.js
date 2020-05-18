@@ -25,8 +25,11 @@ pbjs.setConfig({
         }, {
             name: "id5Id",
             params: {
-                partner: 173, //Set your real ID5 partner ID here for production, please ask for one at https://id5.io/universal-id
-                pd: "some-pd-string" // See https://console.id5.io/docs/public/prebid for details
+                partner: 173, // Set your real ID5 partner ID here for production, please ask for one at https://id5.io/universal-id
+                pd: "some-pd-string", // See https://console.id5.io/docs/public/prebid for details
+                vendors: {
+                    novatiq: true // set to false or omit to disable
+                }
             },
             storage: {
                 type: "cookie",
@@ -147,7 +150,7 @@ pbjs.setConfig({
         },
         {
             name: "id5Id",
-            value: { "id5id": "ID5-abcdef" }
+            value: { id5id: { universal_uid: "ID5-abcdef" } }
         },
         {
             name: "netId",

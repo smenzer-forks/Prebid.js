@@ -4,6 +4,7 @@ import { id5IdSubmodule } from 'modules/id5IdSystem.js';
 import { server } from 'test/mocks/xhr.js';
 import events from 'src/events.js';
 import CONSTANTS from 'src/constants.json';
+import * as utils from 'src/utils';
 
 let expect = require('chai').expect;
 
@@ -20,7 +21,8 @@ describe('ID5 ID System', function() {
   const ID5_STORED_SIGNATURE = '123456';
   const ID5_STORED_OBJ = {
     'universal_uid': ID5_STORED_ID,
-    'signature': ID5_STORED_SIGNATURE
+    'signature': ID5_STORED_SIGNATURE,
+    'id5_consent': true
   };
   const ID5_LEGACY_STORED_OBJ = {
     'ID5ID': ID5_STORED_ID
@@ -30,7 +32,8 @@ describe('ID5 ID System', function() {
   const ID5_JSON_RESPONSE = {
     'universal_uid': ID5_RESPONSE_ID,
     'signature': ID5_RESPONSE_SIGNATURE,
-    'link_type': 0
+    'link_type': 0,
+    'id5_consent': true
   };
 
   function getId5FetchConfig(storageName = ID5_COOKIE_NAME, storageType = 'cookie') {
@@ -367,13 +370,226 @@ describe('ID5 ID System', function() {
       expect(coreStorage.getCookie(ID5_COOKIE_NAME)).to.be.eq(JSON.stringify(ID5_JSON_RESPONSE));
       expect(coreStorage.getCookie(ID5_NB_COOKIE_NAME)).to.be.eq('0');
     });
+
+    it('should not fire novatiq sync request if not enabled and refresh needed', function (done) {
+      let expStr = (new Date(Date.now() + 25000).toUTCString());
+      coreStorage.setCookie(ID5_COOKIE_NAME, JSON.stringify(ID5_STORED_OBJ), expStr);
+
+      setSubmoduleRegistry([id5IdSubmodule]);
+      init(config);
+      config.setConfig(getFetchCookieConfig());
+
+      requestBidsHook(function () {
+        adUnits.forEach(unit => {
+          unit.bids.forEach(bid => {
+            expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.universal_uid`);
+            expect(bid).to.not.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext`);
+            expect(bid).to.not.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext.novatiq_snowflake_id`);
+          });
+        });
+        done();
+      }, { adUnits });
+
+      expect(server.requests).to.be.empty;
+      events.emit(CONSTANTS.EVENTS.AUCTION_END, {});
+
+      let request = server.requests[0];
+      let requestBody = JSON.parse(request.requestBody);
+      expect(request.url).to.contain(ID5_ENDPOINT);
+      expect(requestBody.s).to.eq(ID5_STORED_SIGNATURE);
+
+      const responseHeader = { 'Content-Type': 'application/json' };
+      request.respond(200, responseHeader, JSON.stringify(ID5_JSON_RESPONSE));
+
+      let novatiqRequest = server.requests[1];
+      expect(novatiqRequest).to.be.eq(undefined);
+    });
+
+    it('should not fire novatiq sync request if not enabled and refresh not needed', function (done) {
+      let expStr = (new Date(Date.now() + 25000).toUTCString());
+      coreStorage.setCookie(ID5_COOKIE_NAME, JSON.stringify(ID5_STORED_OBJ), expStr);
+      coreStorage.setCookie(`${ID5_COOKIE_NAME}_last`, (new Date(Date.now() - 50).toUTCString()), expStr);
+
+      let id5Config = getFetchCookieConfig();
+      id5Config.userSync.userIds[0].storage.refreshInSeconds = 3600;
+
+      setSubmoduleRegistry([id5IdSubmodule]);
+      init(config);
+      config.setConfig(id5Config);
+
+      requestBidsHook(function () {
+        adUnits.forEach(unit => {
+          unit.bids.forEach(bid => {
+            expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.universal_uid`);
+            expect(bid).to.not.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext`);
+            expect(bid).to.not.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext.novatiq_snowflake_id`);
+          });
+        });
+        done();
+      }, { adUnits });
+
+      expect(server.requests).to.be.empty;
+      events.emit(CONSTANTS.EVENTS.AUCTION_END, {});
+      expect(server.requests).to.be.empty;
+    });
+
+    it('should not fire novatiq sync request if enabled but no id5 consent and refresh needed', function (done) {
+      let expStr = (new Date(Date.now() + 25000).toUTCString());
+      let cache = utils.deepClone(ID5_STORED_OBJ);
+      cache.id5_consent = false;
+      coreStorage.setCookie(ID5_COOKIE_NAME, JSON.stringify(cache), expStr);
+
+      setSubmoduleRegistry([id5IdSubmodule]);
+      init(config);
+      config.setConfig(getFetchCookieConfig());
+
+      requestBidsHook(function () {
+        adUnits.forEach(unit => {
+          unit.bids.forEach(bid => {
+            expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.universal_uid`);
+            expect(bid).to.not.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext`);
+            expect(bid).to.not.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext.novatiq_snowflake_id`);
+          });
+        });
+        done();
+      }, { adUnits });
+
+      expect(server.requests).to.be.empty;
+      events.emit(CONSTANTS.EVENTS.AUCTION_END, {});
+
+      let request = server.requests[0];
+      let requestBody = JSON.parse(request.requestBody);
+      expect(request.url).to.contain(ID5_ENDPOINT);
+      expect(requestBody.s).to.eq(ID5_STORED_SIGNATURE);
+
+      const responseHeader = { 'Content-Type': 'application/json' };
+      request.respond(200, responseHeader, JSON.stringify(ID5_JSON_RESPONSE));
+
+      let novatiqRequest = server.requests[1];
+      expect(novatiqRequest).to.be.eq(undefined);
+    });
+
+    it('should not fire novatiq sync request if enabled but no id5 consent and refresh not needed', function (done) {
+      let expStr = (new Date(Date.now() + 25000).toUTCString());
+      let cache = utils.deepClone(ID5_STORED_OBJ);
+      cache.id5_consent = false;
+      coreStorage.setCookie(ID5_COOKIE_NAME, JSON.stringify(cache), expStr);
+      coreStorage.setCookie(`${ID5_COOKIE_NAME}_last`, (new Date(Date.now() - 50).toUTCString()), expStr);
+
+      let id5Config = getFetchCookieConfig();
+      id5Config.userSync.userIds[0].storage.refreshInSeconds = 3600;
+
+      setSubmoduleRegistry([id5IdSubmodule]);
+      init(config);
+      config.setConfig(id5Config);
+
+      requestBidsHook(function () {
+        adUnits.forEach(unit => {
+          unit.bids.forEach(bid => {
+            expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.universal_uid`);
+            expect(bid).to.not.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext`);
+            expect(bid).to.not.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext.novatiq_snowflake_id`);
+          });
+        });
+        done();
+      }, { adUnits });
+
+      expect(server.requests).to.be.empty;
+      events.emit(CONSTANTS.EVENTS.AUCTION_END, {});
+      expect(server.requests).to.be.empty;
+    });
+
+    it('should fire novatiq sync request if enabled and refresh needed with id5 consent', function (done) {
+      let expStr = (new Date(Date.now() + 25000).toUTCString());
+      coreStorage.setCookie(ID5_COOKIE_NAME, JSON.stringify(ID5_STORED_OBJ), expStr);
+
+      let id5Config = getFetchCookieConfig();
+      utils.deepSetValue(id5Config.userSync.userIds[0].params, 'vendors.novatiq', true);
+
+      setSubmoduleRegistry([id5IdSubmodule]);
+      init(config);
+      config.setConfig(id5Config);
+
+      let snowflake;
+      requestBidsHook(function () {
+        adUnits.forEach(unit => {
+          unit.bids.forEach(bid => {
+            expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.universal_uid`);
+            expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext.novatiq_snowflake_id`);
+            snowflake = `bid.userId.${ID5_EIDS_NAME}.ext.novatiq_snowflake_id`;
+          });
+        });
+        done();
+      }, { adUnits });
+
+      expect(server.requests).to.be.empty;
+      events.emit(CONSTANTS.EVENTS.AUCTION_END, {});
+
+      let request = server.requests[0];
+      let requestBody = JSON.parse(request.requestBody);
+      expect(request.url).to.contain(ID5_ENDPOINT);
+      expect(requestBody.s).to.eq(ID5_STORED_SIGNATURE);
+
+      const responseHeader = { 'Content-Type': 'application/json' };
+      request.respond(200, responseHeader, JSON.stringify(ID5_JSON_RESPONSE));
+
+      let novatiqRequest = server.requests[1];
+      expect(novatiqRequest.url).to.contain('https://spadsync.com/sync');
+      expect(novatiqRequest.url).to.contain(`sptoken=${snowflake}`);
+      expect(novatiqRequest.url).to.contain(`pubid=${ID5_PARTNER}`);
+    });
+
+    it('should fire novatiq sync request if enabled and refresh not needed with id5 consent', function (done) {
+      let expStr = (new Date(Date.now() + 25000).toUTCString());
+      coreStorage.setCookie(ID5_COOKIE_NAME, JSON.stringify(ID5_STORED_OBJ), expStr);
+      coreStorage.setCookie(`${ID5_COOKIE_NAME}_last`, (new Date(Date.now() - 50).toUTCString()), expStr);
+
+      let id5Config = getFetchCookieConfig();
+      id5Config.userSync.userIds[0].storage.refreshInSeconds = 3600;
+      utils.deepSetValue(id5Config.userSync.userIds[0].params, 'vendors.novatiq', true);
+
+      setSubmoduleRegistry([id5IdSubmodule]);
+      init(config);
+      config.setConfig(id5Config);
+
+      let snowflake;
+      requestBidsHook(function () {
+        adUnits.forEach(unit => {
+          unit.bids.forEach(bid => {
+            expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.universal_uid`);
+            expect(bid).to.have.deep.nested.property(`userId.${ID5_EIDS_NAME}.ext.novatiq_snowflake_id`);
+            snowflake = `bid.userId.${ID5_EIDS_NAME}.ext.novatiq_snowflake_id`;
+          });
+        });
+        done();
+      }, { adUnits });
+
+      expect(server.requests).to.be.empty;
+      events.emit(CONSTANTS.EVENTS.AUCTION_END, {});
+
+      let novatiqRequest = server.requests[0];
+      expect(novatiqRequest.url).to.contain('https://spadsync.com/sync');
+      expect(novatiqRequest.url).to.contain(`sptoken=${snowflake}`);
+      expect(novatiqRequest.url).to.contain(`pubid=${ID5_PARTNER}`);
+    });
   });
 
   describe('Decode stored object', function() {
-    const expectedDecodedObject = { id5id: { universal_uid: ID5_STORED_ID } };
+    let expectedDecodedObject;
+
+    beforeEach(function() {
+      expectedDecodedObject = { id5id: { universal_uid: ID5_STORED_ID } };
+    });
 
     it('should properly decode from a stored object', function() {
       expect(id5IdSubmodule.decode(ID5_STORED_OBJ)).to.deep.equal(expectedDecodedObject);
+    });
+    it('should properly decode from a stored object with extension', function() {
+      let cache = ID5_STORED_OBJ;
+      cache.novatiq_snowflake_id = 'snowflake';
+      expectedDecodedObject.id5id.ext = { novatiq_snowflake_id: 'snowflake' };
+
+      expect(id5IdSubmodule.decode(cache)).to.deep.equal(expectedDecodedObject);
     });
     it('should properly decode from a legacy stored object', function() {
       expect(id5IdSubmodule.decode(ID5_LEGACY_STORED_OBJ)).to.deep.equal(expectedDecodedObject);

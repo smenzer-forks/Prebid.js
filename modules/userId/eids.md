@@ -25,7 +25,10 @@ userIdAsEids = [
         uids: [{
             id: 'some-random-id-value',
             atype: 1
-        }]
+        }],
+        ext: {
+            novatiq_snowflake_id: 'some-random-uuid-value'
+        }
     },
 
     {

@@ -50,6 +50,12 @@ export const id5IdSubmodule = {
       return undefined;
     }
 
+    if (value.novatiq_snowflake_id && typeof value.novatiq_snowflake_id === 'string') {
+      decodedObject.id5id.ext = {
+        novatiq_snowflake_id: value.novatiq_snowflake_id
+      };
+    }
+
     return decodedObject;
   },
 
@@ -91,6 +97,9 @@ export const id5IdSubmodule = {
           if (response) {
             try {
               responseObj = JSON.parse(response);
+              if (responseObj.id5_consent === true && isNovatiqEnabled(configParams)) {
+                responseObj.novatiq_snowflake_id = fireNovatiqSyncRequest(responseObj.universal_uid, configParams.partner);
+              }
               resetNb(configParams);
             } catch (error) {
               utils.logError(error);
@@ -120,6 +129,9 @@ export const id5IdSubmodule = {
    */
   extendId(configParams, cacheIdObj) {
     incrementNb(configParams);
+    if (cacheIdObj.id5_consent === true && isNovatiqEnabled(configParams)) {
+      cacheIdObj.novatiq_snowflake_id = fireNovatiqSyncRequest(cacheIdObj.universal_uid, configParams.partner);
+    }
     return cacheIdObj;
   }
 };
@@ -151,6 +163,29 @@ function incrementNb(configParams) {
 }
 function resetNb(configParams) {
   storeNbInCookie(configParams, 0);
+}
+function isNovatiqEnabled(config) {
+  return (config && config.vendors && config.vendors.novatiq && config.vendors.novatiq === true);
+}
+function generateSnowflakeId() {
+  const genRandHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+  return utils.generateUUID() + genRandHex(4);
+}
+function fireNovatiqSyncRequest(id5Id, partner) {
+  const endpoint = 'https://spadsync.com/sync';
+  const sspid = 'id5';
+  const ssphost = 'id5-sync.com';
+  const snowflakeId = generateSnowflakeId();
+
+  ajax(endpoint, () => {}, {
+    sptoken: snowflakeId,
+    sspid: sspid,
+    ssphost: ssphost,
+    id5id: id5Id,
+    pubid: partner
+  }, { method: 'GET', withCredentials: true });
+
+  return snowflakeId;
 }
 
 submodule('userId', id5IdSubmodule);

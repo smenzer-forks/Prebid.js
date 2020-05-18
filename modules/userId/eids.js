@@ -34,7 +34,12 @@ const USER_IDS_CONFIG = {
       return data.universal_uid
     },
     source: 'id5-sync.com',
-    atype: 1
+    atype: 1,
+    getEidExt: function(data) {
+      if (data.ext) {
+        return data.ext;
+      }
+    }
   },
 
   // parrableId

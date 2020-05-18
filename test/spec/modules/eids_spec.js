@@ -1,7 +1,7 @@
 import {createEidsArray} from 'modules/userId/eids.js';
 import {expect} from 'chai';
 
-//  Note: In unit tets cases for bidders, call the createEidsArray function over userId object that is used for calling fetchBids
+//  Note: In unit test cases for bidders, call the createEidsArray function over userId object that is used for calling fetchBids
 //      this way the request will stay consistent and unit test cases will not need lots of changes.
 
 describe('eids array generation for known sub-modules', function() {
@@ -40,6 +40,26 @@ describe('eids array generation for known sub-modules', function() {
     expect(newEids[0]).to.deep.equal({
       source: 'id5-sync.com',
       uids: [{id: 'some-random-id-value', atype: 1}]
+    });
+  });
+
+  it('id5Id with extension', function() {
+    const userId = {
+      id5id: {
+        universal_uid: 'some-random-id-value',
+        ext: {
+          novatiq_snowflake_id: 'some-random-uuid-value'
+        }
+      }
+    };
+    const newEids = createEidsArray(userId);
+    expect(newEids.length).to.equal(1);
+    expect(newEids[0]).to.deep.equal({
+      source: 'id5-sync.com',
+      uids: [{id: 'some-random-id-value', atype: 1}],
+      ext: {
+        novatiq_snowflake_id: 'some-random-uuid-value'
+      }
     });
   });
 
