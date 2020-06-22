@@ -102,7 +102,7 @@ describe('AdheseAdapter', function () {
     });
 
     it('should include id5 id as /x5 param', function () {
-      let req = spec.buildRequests([ bidWithParams({}, {'id5id': 'ID5-1234567890'}) ], bidderRequest);
+      let req = spec.buildRequests([ bidWithParams({}, {'id5id': {'universal_uid': 'ID5-1234567890'}}) ], bidderRequest);
 
       expect(req.url).to.contain('/x5ID5-1234567890');
     });

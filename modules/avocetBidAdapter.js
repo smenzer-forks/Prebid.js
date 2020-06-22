@@ -77,8 +77,8 @@ export const spec = {
 
     // ID5 identifier
     let id5id;
-    if (bidRequests[0].userId && bidRequests[0].userId.id5id) {
-      id5id = bidRequests[0].userId.id5id;
+    if (bidRequests[0].userId && bidRequests[0].userId.id5id && bidRequests[0].userId.id5id.universal_uid) {
+      id5id = bidRequests[0].userId.id5id.universal_uid;
     }
 
     // Build the avocet ext object

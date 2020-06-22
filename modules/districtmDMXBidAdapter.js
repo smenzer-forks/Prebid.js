@@ -86,7 +86,7 @@ export const spec = {
     if (bidRequest && bidRequest.userId) {
       bindUserId(eids, utils.deepAccess(bidRequest, `userId.idl_env`), 'liveramp.com', 1);
       bindUserId(eids, utils.deepAccess(bidRequest, `userId.digitrustid.data.id`), 'digitru.st', 1);
-      bindUserId(eids, utils.deepAccess(bidRequest, `userId.id5id`), 'id5-sync.com', 1);
+      bindUserId(eids, utils.deepAccess(bidRequest, `userId.id5id.universal_uid`), 'id5-sync.com', 1);
       bindUserId(eids, utils.deepAccess(bidRequest, `userId.pubcid`), 'pubcid.org', 1);
       bindUserId(eids, utils.deepAccess(bidRequest, `userId.tdid`), 'adserver.org', 1);
       dmxRequest.user = dmxRequest.user || {};

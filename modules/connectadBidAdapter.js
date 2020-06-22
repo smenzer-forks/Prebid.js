@@ -109,12 +109,13 @@ export const spec = {
         });
       }
 
-      if (validBidRequests[0].userId.id5id) {
+      if (validBidRequests[0].userId.id5id && validBidRequests[0].userId.id5id.universal_uid) {
         data.user.ext.eids.push({
           source: 'id5-sync.com',
           uids: [{
-            id: validBidRequests[0].userId.id5id,
-          }]
+            id: validBidRequests[0].userId.id5id.universal_uid,
+          }],
+          ext: validBidRequests[0].userId.id5id.ext || {}
         });
       }
 

@@ -2,6 +2,7 @@
 
 import { registerBidder } from '../src/adapters/bidderFactory.js';
 import { BANNER, VIDEO } from '../src/mediaTypes.js';
+import * as utils from '../src/utils.js';
 
 const BIDDER_CODE = 'adhese';
 const USER_SYNC_BASE_URL = 'https://user-sync.adhese.com/iframe/user_sync.html';
@@ -138,8 +139,8 @@ function getAccount(validBidRequests) {
 }
 
 function getId5Id(validBidRequests) {
-  if (validBidRequests[0] && validBidRequests[0].userId && validBidRequests[0].userId.id5id) {
-    return validBidRequests[0].userId.id5id;
+  if (utils.isStr(utils.deepAccess(validBidRequests, '0.userId.id5id.universal_uid'))) {
+    return validBidRequests[0].userId.id5id.universal_uid;
   }
 }
 

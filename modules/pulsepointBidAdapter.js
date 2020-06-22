@@ -420,7 +420,10 @@ function user(bidRequest, bidderRequest) {
       addExternalUserId(ext.eids, bidRequest.userId.britepoolid, 'britepool.com');
       addExternalUserId(ext.eids, bidRequest.userId.criteoId, 'criteo');
       addExternalUserId(ext.eids, bidRequest.userId.idl_env, 'identityLink');
-      addExternalUserId(ext.eids, bidRequest.userId.id5id, 'id5-sync.com');
+      // id5
+      if (bidRequest.userId.id5id && bidRequest.userId.id5id.universal_uid) {
+        addExternalUserId(ext.eids, bidRequest.userId.id5id.universal_uid, 'id5-sync.com', utils.deepAccess(bidRequest, 'userId.id5id.ext'));
+      }
       addExternalUserId(ext.eids, bidRequest.userId.parrableid, 'parrable.com');
       // liveintent
       if (bidRequest.userId.lipb && bidRequest.userId.lipb.lipbid) {

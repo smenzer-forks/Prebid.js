@@ -675,7 +675,7 @@ export const spec = {
     if (bidRequest && bidRequest.userId) {
       this.addExternalUserId(eids, utils.deepAccess(bidRequest, `userId.pubcid`), 'pubcid', 1);
       this.addExternalUserId(eids, utils.deepAccess(bidRequest, `userId.pubcid`), 'pubcommon', 1);
-      this.addExternalUserId(eids, utils.deepAccess(bidRequest, `userId.id5id`), 'id5-sync.com', 1);
+      this.addExternalUserId(eids, utils.deepAccess(bidRequest, `userId.id5id.universal_uid`), 'id5-sync.com', 1);
       this.addExternalUserId(eids, utils.deepAccess(bidRequest, `userId.criteortus.${BIDDER_CODE}.userid`), 'criteortus', 1);
       this.addExternalUserId(eids, utils.deepAccess(bidRequest, `userId.idl_env`), 'liveramp.com', 1);
       this.addExternalUserId(eids, utils.deepAccess(bidRequest, `userId.lipb.lipbid`), 'liveintent.com', 1);
